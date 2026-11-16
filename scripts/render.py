@@ -119,7 +119,9 @@ def main():
     logo = os.path.join(ROOT, "logo.png")
     if os.path.exists(logo):
         run(["ffmpeg", "-y", "-i", sub, "-i", logo,
-             "-filter_complex", "overlay=W-w-24:H-h-24", "-c:a", "copy", final],
+             "-filter_complex",
+             "[1:v]scale=200:-1,format=rgba[wm];[0:v][wm]overlay=W-w-24:H-h-24",
+             "-c:a", "copy", final],
             timeout=300)
     else:
         os.replace(sub, final)
