@@ -54,6 +54,39 @@ def gemini(prompt):
     return json.loads(text)
 
 
+def pollinations_text(prompt):
+    """Keyless LLM fallback (OpenAI-compatible). Returns text ya None."""
+    try:
+        r = requests.post(
+            "https://gen.pollinations.ai/v1/chat/completions",
+            json={
+                "model": "openai/gpt-5.4-nano",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 900,
+                "temperature": 0.9,
+            },
+            timeout=120,
+        )
+        if r.status_code == 200:
+            return r.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        log("pollinations text err", str(e)[:150])
+    return None
+
+
+def llm_json(prompt, schema_hint="JSON"):
+    """Pehle Gemini, phir keyless Pollinations. JSON parse karke deta hai."""
+    try:
+        return gemini(prompt)
+    except Exception as e:
+        log("Gemini fail, keyless fallback:", str(e)[:180])
+    txt = pollinations_text(prompt)
+    if not txt:
+        raise RuntimeError("dono LLM fail")
+    txt = txt.strip().removeprefix("```json").removesuffix("```").strip()
+    return json.loads(txt)
+
+
 def main():
     data = load_json(os.path.join(ROOT, "data.json"), {"videos": []})
     topics = load_json(os.path.join(ROOT, "config", "topics.json"), {})
@@ -76,12 +109,15 @@ Rules:
 - search_keywords: stock footage dhundhne ke liye 8 ENGLISH keywords do.
 
 Sirf JSON do:
-{{"topic":"...","title":"...","script":"...","caption":"2-3 line Hinglish caption","hashtags":["#..."],"search_keywords":["..."],"pillar":"..."}}"""
+{{"topic":"...","title":"...","script":"...","caption":"2-3 line Hinglish caption","hashtags":["#..."],"search_keywords":["..."],"pillar":"..."}}
+
+Koi extra bhashan nahi — sirf JSON object.
+"""
 
     try:
-        c = gemini(prompt)
+        c = llm_json(prompt)
     except Exception as e:
-        log("Gemini fail, fallback content use ho raha hai:", str(e)[:200])
+        log("LLM fail, fallback content use ho raha hai:", str(e)[:200])
         c = dict(FALLBACK)
 
     c.setdefault("pillar", pillar)
