@@ -1,0 +1,8 @@
+work/clips/
+work/segs/
+*.mp4
+work/voice.mp3
+work/reel_*.mp4
+work/list.txt
+__pycache__/
+*.pyc
