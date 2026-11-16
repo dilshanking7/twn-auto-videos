@@ -1,6 +1,7 @@
 {
   "rungs_used": [
-    "kenburns_still"
+    "stock",
+    "kenburns"
   ],
-  "mode": "image"
+  "mode": "text"
 }
