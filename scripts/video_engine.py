@@ -282,17 +282,21 @@ def main():
             still = os.path.join(CLIPS, "still.jpg")
             if image.startswith("http"):
                 try:
-                    r = requests.get(image, timeout=90)
-                    if r.status_code == 200:
+                    r = requests.get(image, timeout=90,
+                                     headers={"User-Agent": "Mozilla/5.0"})
+                    log("input image download:", r.status_code, len(r.content))
+                    if r.status_code == 200 and len(r.content) > 5000:
                         with open(still, "wb") as f:
                             f.write(r.content)
-                except Exception:
-                    pass
+                except Exception as e:
+                    log("input image err", str(e)[:150])
             elif os.path.exists(image):
                 still = image
             if os.path.exists(still) and kenburns_still(still, out, duration=5):
                 ok = True
                 used.append("kenburns_still")
+            else:
+                log("input image se Ken Burns nahi ban paya")
 
     if not ok:
         out = os.path.join(CLIPS, "ai0.mp4")
